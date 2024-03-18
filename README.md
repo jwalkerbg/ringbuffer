@@ -30,7 +30,7 @@ Description: This function dequeues multiple elements from the buffer _copying_ 
 
 ### void rb_scan_buffer(ring_buffer_t *cb, rb_scan_cb_t callback);
 
-Description: This function scans all elements present in the buffer beginning from the oldest one and finishing with the newest one. For each one the function calls supplied as a parameter callback function. This callback receives a pointer to the current element (reference) and index of the element. The first call will supply the oldest element with index ```0``` and the last call will supply the newest element with ```ring_buffer_t::count - 1```.
+Description: This function scans all elements present in the buffer beginning from the oldest one and finishing with the newest one. For each one the function calls supplied as a parameter callback function. The callback receives a pointer to the current element (reference) and index of the element. The first call will supply the oldest element with index ```0``` and the last call will supply the newest element with ```ring_buffer_t::count - 1```.
 
 The callback function can be used for what is needed by the application, even to change data in elements. Par example if elements are structures with three integers ```a```, ```b``` and ```c```, the callback function can store in ```c``` the value of ```a + b```.
 
@@ -40,7 +40,9 @@ For tasks where a single calculated result is needed, without changing the eleme
 
 ### void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback);
 
-Description: This function
+Description: This function produces single result from the data in the buffer performing operation(s) on them. Simple example is to calculate and return the sum of the elements (if they are summable). The function scans all elements beginning from the oldest one and finishing with the newest one. The callback function takes two arguments: the current accumulated value and the current data element. It performs operations on the current value and changes the acummulated value with the produced result. The function returns the final accumulated value, stored in the place of the initial value. The type of initial/final values may be different from the type of the values in the buffer.
+
+The idea for ```rb_inject``` comes from the function with same name in Ruby language.
 
 ### bool rb_is_empty(ring_buffer_t *cb);
 
