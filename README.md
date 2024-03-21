@@ -60,6 +60,47 @@ Description: This function frees the memory occupied by the buffer. Any data con
 
 ### Scan and log data in the buffer
 
+```
+typedef struct {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+    double magnitude;
+} point3d_t;
+
+void log_callback(uint8_t * item, uint32_t index)
+{
+    point3d_t* p = (point3d_t* )item;
+    std::cout << "Scanned point3d_t data[" << index << "]: x=" << p->x << " y=" << p->y << " z=" << p->z << std::endl;
+}
+
+int main(void)
+{
+    // Enqueue some point3d_t elements
+    point3d_t point_data1 = {10, 10, 10};
+    point3d_t point_data2 = {20, 20, 20};
+    point3d_t point_data3 = {30, 30, 30};
+    point3d_t point_data3 = {40, 40, 40};
+
+    ring_buffer_t *rb_point3d = rb_init_circular_buffer(4, sizeof(point3d_t));
+    if (rb_point3d == NULL) {
+        std::cout << "Failed to initialize circular buffer for point3d_t" << std::endl;
+        return 1;
+    }     
+
+    rb_enqueue(rb_point3d, &point_data1);
+    rb_enqueue(rb_point3d, &point_data2);
+    rb_enqueue(rb_point3d, &point_data3);
+    rb_enqueue(rb_point3d, &point_data4);
+
+    rb_scan_buffer(rb_point3d,log_callback);
+
+    rb_free_ring_buffer(rb_point3d);
+    
+    return 0;
+}
+```
+
 ### Find sum of the data in the buffer
 
 ### Calculate maginute of a vector in 3D space from its x, y, z coordinates
