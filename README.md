@@ -103,6 +103,89 @@ int main(void)
 
 ### Find sum of the data in the buffer
 
+```
+typedef struct {
+    int16_t value;
+} value_t;
+
+void* sum_callback(void *accumulatedValue, void *data)
+{
+    int32_t* p = (int32_t* )accumulatedValue;
+    value_t* element = (value_t *)data;
+    *p += element->value;
+}
+
+int main(void)
+{
+    // Enqueue some point3d_t elements
+    value_t point_data1 = 10;
+    value_t point_data2 = 20;
+    value_t point_data3 = 30;
+    value_t point_data3 = 40;
+
+    ring_buffer_t *rb_value = rb_init_ring_buffer(4, sizeof(rb_value));
+    if (rb_point3d == NULL) {
+        std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
+        return 1;
+    }     
+
+    rb_enqueue(rb_value, &point_data1);
+    rb_enqueue(rb_value, &point_data2);
+    rb_enqueue(rb_value, &point_data3);
+    rb_enqueue(rb_value, &point_data4);
+
+    int32_t sum = 0;   // initial value
+    rb_scan_buffer(rb_value,&sum,sum_callback);
+    std::cout << Sum = " << sum << std::endl;
+
+    rb_free_ring_buffer(rb_point3d);
+    
+    return 0;
+}
+```
+
 ### Calculate maginute of a vector in 3D space from its x, y, z coordinates
+
+```
+typedef struct {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+    double magnitude;
+} point3d_t;
+
+void mag_callback(uint8_t * item, uint32_t index)
+{
+    point3d_t* p = (point3d_t* )item;
+    p->magnitude = sqrt(p->x*p->x + p->y*p->y + p->z*p->z);
+    std::cout << "Magnitude = " << p->magnitude << std::endl;
+}
+
+int main(void)
+{
+    // Enqueue some point3d_t elements
+    point3d_t point_data1 = {10, 10, 10};
+    point3d_t point_data2 = {20, 20, 20};
+    point3d_t point_data3 = {30, 30, 30};
+    point3d_t point_data3 = {40, 40, 40};
+
+    ring_buffer_t *rb_point3d = rb_init_ring_buffer(4, sizeof(point3d_t));
+    if (rb_point3d == NULL) {
+        std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
+        return 1;
+    }     
+
+    rb_enqueue(rb_point3d, &point_data1);
+    rb_enqueue(rb_point3d, &point_data2);
+    rb_enqueue(rb_point3d, &point_data3);
+    rb_enqueue(rb_point3d, &point_data4);
+
+    rb_scan_buffer(rb_point3d,mag_callback);
+
+    rb_free_ring_buffer(rb_point3d);
+    
+    return 0;
+}
+```
 
 ### Find average of the data in the buffer
