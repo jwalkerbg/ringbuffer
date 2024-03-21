@@ -135,7 +135,7 @@ int main(void)
     rb_enqueue(rb_value, &point_data4);
 
     int32_t sum = 0;   // initial value
-    rb_scan_buffer(rb_value,&sum,sum_callback);
+    rb_inject(rb_value,&sum,sum_callback);
     std::cout << Sum = " << sum << std::endl;
 
     rb_free_ring_buffer(rb_point3d);
@@ -189,3 +189,54 @@ int main(void)
 ```
 
 ### Find average of the data in the buffer
+
+```
+typedef struct {
+    double value;
+} mag_t;
+
+typedef struct {
+    double sum;
+    double avg;
+    uint32_t count;
+} rb_avg_t;
+
+void avg_callback(void *accumulatedValue, void *data)
+{
+    int32_t* p = (rb_avg_t* )accumulatedValue;
+    mag_t* element = (mag_t *)data;
+    p->sum += element->value;
+    p->count += 1;
+}
+
+int main(void)
+{
+    // Enqueue some point3d_t elements
+    mag_t point_data1.value = 10.0;
+    mag_t point_data2.value = 20.0;
+    mag_t point_data3.value = 30.0;
+    mag_t point_data3.value = 40.0;
+
+    ring_buffer_t *rb_mag = rb_init_ring_buffer(4, sizeof(mag_t));
+    if (rb_mag == NULL) {
+        std::cout << "Failed to initialize ring buffer for mag_t" << std::endl;
+        return 1;
+    }     
+
+    rb_enqueue(rb_mag, &point_data1);
+    rb_enqueue(rb_mag, &point_data2);
+    rb_enqueue(rb_mag, &point_data3);
+    rb_enqueue(rb_mag, &point_data4);
+
+    rb_avg_t avg;
+    avg.sum = 0.0;
+    avg.count = 0;
+    rb_inject(rb_mag,&avg,avg_callback);
+    avg.avg = avg.sum / avg.count;
+    std::count << "Average = " << avg.avg << std::endl;
+
+    rb_free_ring_buffer(rb_point3d);
+    
+    return 0;
+}
+```
