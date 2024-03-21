@@ -82,9 +82,9 @@ int main(void)
     point3d_t point_data3 = {30, 30, 30};
     point3d_t point_data3 = {40, 40, 40};
 
-    ring_buffer_t *rb_point3d = rb_init_circular_buffer(4, sizeof(point3d_t));
+    ring_buffer_t *rb_point3d = rb_init_ring_buffer(4, sizeof(point3d_t));
     if (rb_point3d == NULL) {
-        std::cout << "Failed to initialize circular buffer for point3d_t" << std::endl;
+        std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
         return 1;
     }     
 
