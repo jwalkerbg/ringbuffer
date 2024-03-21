@@ -203,7 +203,7 @@ typedef struct {
 
 void avg_callback(void *accumulatedValue, void *data)
 {
-    int32_t* p = (rb_avg_t* )accumulatedValue;
+    rb_avg_t* p = (rb_avg_t* )accumulatedValue;
     mag_t* element = (mag_t *)data;
     p->sum += element->value;
     p->count += 1;
