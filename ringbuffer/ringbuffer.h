@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <zephyr/kernel.h>
@@ -30,5 +34,9 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback);
 bool rb_is_empty(ring_buffer_t *cb);
 bool rb_is_full(ring_buffer_t *cb);
 void rb_free_ring_buffer(ring_buffer_t *cb);
+
+#ifdef __cplusplus
+}
+#endif /* End of CPP guard */
 
 // end of ringbuffer.h
