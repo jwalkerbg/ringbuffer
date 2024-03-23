@@ -182,7 +182,7 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback)
     }
 
     // Initialize index to head
-    int currentIndex = cb->head;
+    int currentIndex = cb->head / cb->dataSize;
 
     // Initialize accumulated value to the initial value
     void *accumulatedValue = initial_value;
