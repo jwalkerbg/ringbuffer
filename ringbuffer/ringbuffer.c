@@ -10,6 +10,9 @@
 // Changed types in ring_buffer_t to uint32_t
 // v01.10, 13.03.2024
 // Added function rb_inject
+// v01.20, 24.03.2024
+// Renamed rb_scan_buffer to rb_scan
+// Added rb_map function
 
 // Input:
 //  size: maximal number of elements the ring can contain
