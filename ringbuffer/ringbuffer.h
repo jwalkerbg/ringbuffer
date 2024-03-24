@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -39,6 +43,6 @@ void rb_free_ring_buffer(ring_buffer_t *cb);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* End of CPP guard */
 
 // end of ringbuffer.h
