@@ -173,7 +173,7 @@ void rb_scan_buffer(ring_buffer_t *cb, rb_scan_cb_t callback)
 // The callback function takes two arguments: the current accumulated value and the current data element
 // The function returns the final accumulated value, stored in the place of the initial value.
 // The type of initial/final values may be different of the type of the values in the buffer.
-void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback)
+void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback)
 {
     k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
     if (cb->count == 0) {
@@ -206,7 +206,7 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback)
 //  mappedDataSize: daa size of the new mapped data for the new ring buffer
 // Output:
 //  pointer to new ringbuffer, containing the new mapped data.
-// Description: his function mimics ruby's map method of enumerable objects.
+// Description: This function mimics ruby's map method of enumerable objects.
 // It performs map operation - producing new data from the original data. From mathematical point of view
 // if creates new function from the original function (mapping).
 // The callback function takes two arguments: pointer to the curent original value and pointer to a space
