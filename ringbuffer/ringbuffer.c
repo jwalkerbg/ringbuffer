@@ -95,7 +95,7 @@ bool rb_dequeue(ring_buffer_t *cb, void *data)
 // Output:
 //  true: elements were dequeued; false: no elements were dequeued
 // Description: This function removes multiple elements from the ring buffer and copies them into data array.
-bool rb_dequeue_multiple(ring_buffer_t *cb, void *data, int numItems, int* dequeued)
+bool rb_dequeue_multiple(ring_buffer_t *cb, void *data, uint32_t numItems, uint32_t* dequeued)
 {
     k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
     if (cb->count == 0) {
