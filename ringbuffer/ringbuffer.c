@@ -200,6 +200,41 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback)
     return accumulatedValue;
 }
 
+ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize)
+{
+    k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
+
+    // Create a new circular buffer with the given size and data size
+    ring_buffer_t* rb_mapped = rb_init_ring_buffer(cb->size,mappedDataSize);
+    if (rb_mapped  == NULL) {
+        // k_sem_give(&cb->bmx);
+        return NULL;
+    }
+
+    // Allocate memory for the temporary new data element
+    void *new_data_element = malloc(mappedDataSize);
+    if (new_data_element == NULL) {
+        rb_free_ring_buffer(rb_mapped); // Free the new circular buffer
+        // k_sem_give(&cb->bmx); // Unlock the mutex
+        return NULL; // Memory allocation failed
+    }
+
+    // Apply the callback function to each element of the original circular buffer and enqueue the results into the new circular buffer
+    int currentIndex = cb->head / cb->dataSize;
+    for (uint32_t i = 0; i < cb->count; ++i) {
+        callback(cb->buffer + currentIndex * cb->dataSize, new_data_element);
+        rb_enqueue(rb_mapped,new_data_element);
+        // Move to the next index, wrapping around if necessary
+        currentIndex = (currentIndex + 1) % cb->size;
+    }
+
+    // Free memory allocated for the temporary new data element
+    free(new_data_element);
+
+    // k_sem_give(&cb->bmx);
+    return rb_mapped;
+}
+
 // Input:
 //  cb: pointer to a ringbuffer
 // Output:
