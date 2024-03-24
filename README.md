@@ -28,15 +28,15 @@ Description: This function dequeues oldest element from the buffer and _copies_ 
 
 Description: This function dequeues multiple elements from the buffer _copying_ them into ```data```. It tries to copy ```numItems```. If there are less than ```numItems``` inside the buffer, it _copies_ as many as possible. The function updates ```*dequeued``` with the number of actually dequeued elements.
 
-### void rb_scan_buffer(ring_buffer_t *cb, rb_scan_cb_t callback);
+### void rb_scan(ring_buffer_t *cb, rb_scan_cb_t callback);
 
 Description: This function scans all elements present in the buffer beginning from the oldest one and finishing with the newest one. For each one the function calls supplied as a parameter callback function. The callback receives a pointer to the current element (reference) and index of the element. The first call will supply the oldest element with index ```0``` and the last call will supply the newest element with ```ring_buffer_t::count - 1```.
 
 The callback function can be used for what is needed by the application, even to change data in elements. Par example if elements are structures with three integers ```a```, ```b``` and ```c```, the callback function can store in ```c``` the value of ```a + b```.
 
-Obviously, ```rb_scan_buffer``` can be used and for trivial tasks as to print elements data to output or save them to a file.
+Obviously, ```rb_scan``` can be used and for trivial tasks as to print elements data to output or save them to a file.
 
-For tasks where a single calculated result is needed, without changing the elements (sum, product, average etc...) ```rb_scan_buffer``` can do them using external variables, however ```rb_inject``` is more suitable for such tasks.
+For tasks where a single calculated result is needed, without changing the elements (sum, product, average etc...) ```rb_scan``` can do them using external variables, however ```rb_inject``` is more suitable for such tasks.
 
 ### void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback);
 
@@ -97,7 +97,7 @@ int main(void)
     rb_enqueue(rb_point3d, &point_data3);
     rb_enqueue(rb_point3d, &point_data4);
 
-    rb_scan_buffer(rb_point3d,log_callback);
+    rb_scan(rb_point3d,log_callback);
 
     rb_free_ring_buffer(rb_point3d);
 
@@ -184,7 +184,7 @@ int main(void)
     rb_enqueue(rb_point3d, &point_data3);
     rb_enqueue(rb_point3d, &point_data4);
 
-    rb_scan_buffer(rb_point3d,mag_callback);
+    rb_scan(rb_point3d,mag_callback);
 
     rb_free_ring_buffer(rb_point3d);
 
@@ -296,11 +296,11 @@ int main(void)
     rb_enqueue(rb_point3d, &point_data3);
     rb_enqueue(rb_point3d, &point_data4);
 
-    rb_scan_buffer(rb_point3d,mag_callback);
+    rb_scan(rb_point3d,mag_callback);
 
     ring_buffer_t* rb_opposite = rb_map(rb_point3d,rb_mapping_callback,sizeof(point3d_t));
     if (rb_opposite != NULL) {
-        rb_scan_buffer(rb_point3d,print_callback);
+        rb_scan(rb_point3d,print_callback);
         rb_free_ring_buffer(rb_opposite);
     }
 

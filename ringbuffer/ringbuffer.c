@@ -144,7 +144,7 @@ bool rb_dequeue_multiple(ring_buffer_t *cb, void *data, uint32_t numItems, uint3
 // points to the current selected element.
 // The callback function is free to do what is suitable with its parameter, but it is forbideden
 // to use the pointer to access other elements of the buffer.
-void rb_scan_buffer(ring_buffer_t *cb, rb_scan_cb_t callback)
+void rb_scan(ring_buffer_t *cb, rb_scan_cb_t callback)
 {
     k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
     // Initialize index to head
