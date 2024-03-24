@@ -38,11 +38,15 @@ Obviously, ```rb_scan_buffer``` can be used and for trivial tasks as to print el
 
 For tasks where a single calculated result is needed, without changing the elements (sum, product, average etc...) ```rb_scan_buffer``` can do them using external variables, however ```rb_inject``` is more suitable for such tasks.
 
-### void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_t callback);
+### void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback);
 
 Description: This function produces single result from the data in the buffer performing operation(s) on them. Simple example is to calculate and return the sum of the elements (if they are summable). The function scans all elements beginning from the oldest one and finishing with the newest one. The callback function takes two arguments: the current accumulated value and the current data element. It performs operations on the current value and changes the acummulated value with the produced result. The function returns the final accumulated value, stored in the place of the initial value. The type of initial/final values may be different from the type of the values in the buffer.
 
 The idea for ```rb_inject``` comes from the function with same name in Ruby language.
+
+### ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize);;
+
+Description: This function mimics ruby's map method of enumerable objects. It performs map operation - producing new data from the original data. From mathematical point of view if creates new function from the original function (mapping). The callback function takes two arguments: pointer to the curent original value and pointer to a space where the new value must be stored.
 
 ### bool rb_is_empty(ring_buffer_t *cb);
 
@@ -86,7 +90,7 @@ int main(void)
     if (rb_point3d == NULL) {
         std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
         return 1;
-    }     
+    }
 
     rb_enqueue(rb_point3d, &point_data1);
     rb_enqueue(rb_point3d, &point_data2);
@@ -96,7 +100,7 @@ int main(void)
     rb_scan_buffer(rb_point3d,log_callback);
 
     rb_free_ring_buffer(rb_point3d);
-    
+
     return 0;
 }
 ```
@@ -127,7 +131,7 @@ int main(void)
     if (rb_point3d == NULL) {
         std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
         return 1;
-    }     
+    }
 
     rb_enqueue(rb_value, &point_data1);
     rb_enqueue(rb_value, &point_data2);
@@ -139,12 +143,12 @@ int main(void)
     std::cout << Sum = " << sum << std::endl;
 
     rb_free_ring_buffer(rb_point3d);
-    
+
     return 0;
 }
 ```
 
-### Calculate maginute of a vector in 3D space from its x, y, z coordinates
+### Calculate magninute of a vector in 3D space from its x, y, z coordinates
 
 ```
 typedef struct {
@@ -173,7 +177,7 @@ int main(void)
     if (rb_point3d == NULL) {
         std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
         return 1;
-    }     
+    }
 
     rb_enqueue(rb_point3d, &point_data1);
     rb_enqueue(rb_point3d, &point_data2);
@@ -183,7 +187,7 @@ int main(void)
     rb_scan_buffer(rb_point3d,mag_callback);
 
     rb_free_ring_buffer(rb_point3d);
-    
+
     return 0;
 }
 ```
@@ -221,7 +225,7 @@ int main(void)
     if (rb_mag == NULL) {
         std::cout << "Failed to initialize ring buffer for mag_t" << std::endl;
         return 1;
-    }     
+    }
 
     rb_enqueue(rb_mag, &point_data1);
     rb_enqueue(rb_mag, &point_data2);
@@ -236,7 +240,72 @@ int main(void)
     std::count << "Average = " << avg.avg << std::endl;
 
     rb_free_ring_buffer(rb_point3d);
-    
+
+    return 0;
+}
+```
+
+### Turn a vector to opposite direction.
+
+```
+typedef struct {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+    double magnitude;
+} point3d_t;
+
+void mag_callback(uint8_t * item, uint32_t index)
+{
+    point3d_t* p = (point3d_t* )item;
+    p->magnitude = sqrt(p->x*p->x + p->y*p->y + p->z*p->z);
+    std::cout << "Magnitude = " << p->magnitude << std::endl;
+}
+
+void rb_mapping_callback(void * original, void * mapped)
+{
+    ((point3d_t* )mapped)->x = -((point3d_t* )original)->x;
+    ((point3d_t* )mapped)->y = -((point3d_t* )original)->y;
+    ((point3d_t* )mapped)->z = -((point3d_t* )original)->z;
+    ((point3d_t* )mapped)->magnitude = ((point3d_t* )original)->magnitude;
+}
+
+void print_callback(uint8_t * item, uint32_t index)
+{
+    point3d_t* p = (point3d_t* )item;
+
+    std::cout << "x = " << p->x << " y = " << p->y << " z = " << p->z << " Magnitude = " << p->magnitude << std::endl;
+}
+
+int main(void)
+{
+    // Enqueue some point3d_t elements
+    point3d_t point_data1 = {10, 10, 10, 0};
+    point3d_t point_data2 = {20, 20, 20, 0};
+    point3d_t point_data3 = {30, 30, 30, 0};
+    point3d_t point_data3 = {40, 40, 40, 0};
+
+    ring_buffer_t *rb_point3d = rb_init_ring_buffer(4, sizeof(point3d_t));
+    if (rb_point3d == NULL) {
+        std::cout << "Failed to initialize ring buffer for point3d_t" << std::endl;
+        return 1;
+    }
+
+    rb_enqueue(rb_point3d, &point_data1);
+    rb_enqueue(rb_point3d, &point_data2);
+    rb_enqueue(rb_point3d, &point_data3);
+    rb_enqueue(rb_point3d, &point_data4);
+
+    rb_scan_buffer(rb_point3d,mag_callback);
+
+    ring_buffer_t* rb_opposite = rb_map(rb_point3d,rb_mapping_callback,sizeof(point3d_t));
+    if (rb_opposite != NULL) {
+        rb_scan_buffer(rb_point3d,print_callback);
+        rb_free_ring_buffer(rb_opposite);
+    }
+
+    rb_free_ring_buffer(rb_point3d);
+
     return 0;
 }
 ```
