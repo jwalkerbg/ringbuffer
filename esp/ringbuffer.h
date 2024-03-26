@@ -7,7 +7,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <zephyr/kernel.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +22,7 @@ typedef struct {
     uint32_t size;      // Maximum number of elements in the buffer
     uint32_t count;     // Current number of elements in the buffer
     size_t dataSize;    // Size of each data element
-    struct k_sem bmx;   // Mutex for mutual exclusion
+    SemaphoreHandle_t bmx;  // Mutex for mutual exclusion
 } ring_buffer_t;
 
 typedef void (*rb_scan_cb_t)(uint8_t *, uint32_t);

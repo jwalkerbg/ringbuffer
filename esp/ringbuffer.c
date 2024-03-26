@@ -37,8 +37,8 @@ ring_buffer_t *rb_init_ring_buffer(int size, size_t dataSize)
     cb->tail = 0;
     cb->count = 0;
     cb->dataSize = dataSize;
-    k_sem_init(&cb->bmx,1,1);
-    k_sem_give(&cb->bmx);
+    cb->bmx = xSemaphoreCreateBinary();
+    xSemaphoreGive(cb->bmx);
     return cb;
 }
 
@@ -52,7 +52,7 @@ bool rb_enqueue(ring_buffer_t *cb, void *data)
 {
     int ret;
 
-    k_sem_take(&cb->bmx,K_FOREVER);
+    xSemaphoreTake(&cb->bmx,portMAX_DELAY);
     if (cb->count == cb->size) {
         ret = false;    // Buffer full
     }
@@ -62,7 +62,7 @@ bool rb_enqueue(ring_buffer_t *cb, void *data)
         cb->count++;
         ret = true;     // Success
     }
-    k_sem_give(&cb->bmx);
+    xSemaphoreGive(&cb->bmx);
     return ret;
 }
 
@@ -76,9 +76,9 @@ bool rb_dequeue(ring_buffer_t *cb, void *data)
 {
     int ret;
 
-    k_sem_take(&cb->bmx,K_FOREVER);
+    xSemaphoreTake(&cb->bmx,portMAX_DELAY);
     if (cb->count == 0) {
-        return false;   // Buffer empty
+        ret = false;   // Buffer empty
     }
     else {
         memcpy(data, cb->buffer + cb->head, cb->dataSize);                  // Copy data from the ring buffer
@@ -86,7 +86,7 @@ bool rb_dequeue(ring_buffer_t *cb, void *data)
         cb->count--;
         ret = true;     // Success
     }
-    k_sem_give(&cb->bmx);
+    xSemaphoreGive(&cb->bmx);
     return ret;
 }
 
@@ -100,10 +100,10 @@ bool rb_dequeue(ring_buffer_t *cb, void *data)
 // Description: This function removes multiple elements from the ring buffer and copies them into data array.
 bool rb_dequeue_multiple(ring_buffer_t *cb, void *data, uint32_t numItems, uint32_t* dequeued)
 {
-    k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
+    xSemaphoreTake(&cb->bmx,portMAX_DELAY); // Lock the mutex
     if (cb->count == 0) {
         if (dequeued) *dequeued = 0;
-        k_sem_give(&cb->bmx);
+        xSemaphoreGive(&cb->bmx);
         return false;   // Buffer empty, no items dequeued
     }
 
@@ -132,7 +132,7 @@ bool rb_dequeue_multiple(ring_buffer_t *cb, void *data, uint32_t numItems, uint3
     cb->count -= itemsToDequeue;
 
     if (dequeued) *dequeued = itemsToDequeue;
-    k_sem_give(&cb->bmx);
+    xSemaphoreGive(&cb->bmx);
     return true;
 }
 
@@ -149,7 +149,7 @@ bool rb_dequeue_multiple(ring_buffer_t *cb, void *data, uint32_t numItems, uint3
 // to use the pointer to access other elements of the buffer.
 void rb_scan(ring_buffer_t *cb, rb_scan_cb_t callback)
 {
-    k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
+    xSemaphoreTake(&cb->bmx,portMAX_DELAY); // Lock the mutex
     // Initialize index to head
     int currentIndex = cb->head / cb->dataSize;
 
@@ -161,7 +161,7 @@ void rb_scan(ring_buffer_t *cb, rb_scan_cb_t callback)
         // Move to the next index, wrapping around if necessary
         currentIndex = (currentIndex + 1) % cb->size;
     }
-    k_sem_give(&cb->bmx);
+    xSemaphoreGive(&cb->bmx);
 }
 
 // Input:
@@ -178,9 +178,9 @@ void rb_scan(ring_buffer_t *cb, rb_scan_cb_t callback)
 // The type of initial/final values may be different of the type of the values in the buffer.
 void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback)
 {
-    k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
+    xSemaphoreTake(&cb->bmx,portMAX_DELAY); // Lock the mutex
     if (cb->count == 0) {
-        k_sem_give(&cb->bmx);           // Unlock the mutex
+        xSemaphoreGive(&cb->bmx);           // Unlock the mutex
         return initial_value;           // Return the initial value unchanged
     }
 
@@ -199,7 +199,7 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback)
         currentIndex = (currentIndex + 1) % cb->size;
     }
 
-    k_sem_give(&cb->bmx);
+    xSemaphoreGive(&cb->bmx);
     return accumulatedValue;
 }
 
@@ -216,12 +216,12 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback)
 // where the new value must be stored.
 ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize)
 {
-    k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
+    xSemaphoreTake(&cb->bmx,portMAX_DELAY); // Lock the mutex
 
     // Create a new circular buffer with the given size and data size
     ring_buffer_t* rb_mapped = rb_init_ring_buffer(cb->size,mappedDataSize);
     if (rb_mapped  == NULL) {
-        // k_sem_give(&cb->bmx);
+        xSemaphoreGive(&cb->bmx);
         return NULL;
     }
 
@@ -229,7 +229,7 @@ ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedData
     void *new_data_element = malloc(mappedDataSize);
     if (new_data_element == NULL) {
         rb_free_ring_buffer(rb_mapped); // Free the new circular buffer
-        // k_sem_give(&cb->bmx); // Unlock the mutex
+        xSemaphoreGive(&cb->bmx); // Unlock the mutex
         return NULL; // Memory allocation failed
     }
 
@@ -245,7 +245,7 @@ ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedData
     // Free memory allocated for the temporary new data element
     free(new_data_element);
 
-    // k_sem_give(&cb->bmx);
+    xSemaphoreGive(&cb->bmx);
     return rb_mapped;
 }
 
