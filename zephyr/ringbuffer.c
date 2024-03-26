@@ -78,7 +78,7 @@ bool rb_dequeue(ring_buffer_t *cb, void *data)
 
     k_sem_take(&cb->bmx,K_FOREVER);
     if (cb->count == 0) {
-        return false;   // Buffer empty
+        ret = false;  // Buffer empty
     }
     else {
         memcpy(data, cb->buffer + cb->head, cb->dataSize);                  // Copy data from the ring buffer
@@ -221,7 +221,7 @@ ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedData
     // Create a new circular buffer with the given size and data size
     ring_buffer_t* rb_mapped = rb_init_ring_buffer(cb->size,mappedDataSize);
     if (rb_mapped  == NULL) {
-        // k_sem_give(&cb->bmx);
+        k_sem_give(&cb->bmx);
         return NULL;
     }
 
@@ -229,7 +229,7 @@ ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedData
     void *new_data_element = malloc(mappedDataSize);
     if (new_data_element == NULL) {
         rb_free_ring_buffer(rb_mapped); // Free the new circular buffer
-        // k_sem_give(&cb->bmx); // Unlock the mutex
+        k_sem_give(&cb->bmx); // Unlock the mutex
         return NULL; // Memory allocation failed
     }
 
@@ -245,7 +245,7 @@ ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedData
     // Free memory allocated for the temporary new data element
     free(new_data_element);
 
-    // k_sem_give(&cb->bmx);
+    k_sem_give(&cb->bmx);
     return rb_mapped;
 }
 
