@@ -21,7 +21,7 @@
 //  a pointer to a ringbuffer or NULL if there were no memory to allocate it.
 // Description: This function initializes the ring buffer.
 // dataSize is usually sizeof of some struct describing the data elements.
-ring_buffer_t *rb_init_ring_buffer(int size, size_t dataSize)
+ring_buffer_t *rb_init_ring_buffer(uint32_t size, uint32_t dataSize)
 {
     ring_buffer_t *cb = (ring_buffer_t *)malloc(sizeof(ring_buffer_t));
     if (cb == NULL) {
@@ -33,9 +33,9 @@ ring_buffer_t *rb_init_ring_buffer(int size, size_t dataSize)
         return NULL; // Memory allocation failed
     }
     cb->size = size;
-    cb->head = 0;
-    cb->tail = 0;
-    cb->count = 0;
+    cb->head = 0u;
+    cb->tail = 0u;
+    cb->count = 0u;
     cb->dataSize = dataSize;
     cb->bmx = xSemaphoreCreateBinary();
     xSemaphoreGive(cb->bmx);
