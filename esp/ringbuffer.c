@@ -13,6 +13,8 @@
 // v01.20, 24.03.2024
 // Renamed rb_scan_buffer to rb_scan
 // Added rb_map function
+// v1.30, 29.03.2024
+// Added rb_selecct function
 
 // Input:
 //  size: maximal number of elements the ring can contain
