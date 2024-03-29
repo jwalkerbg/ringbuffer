@@ -211,9 +211,10 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback)
 //  pointer to new ringbuffer, containing the new mapped data.
 // Description: This function mimics ruby's map method of enumerable objects.
 // It performs map operation - producing new data from the original data. From mathematical point of view
-// if creates new function from the original function (mapping).
+// it creates a new function from the original function (mapping).
 // The callback function takes two arguments: pointer to the curent original value and pointer to a space
 // where the new value must be stored.
+// If there is no memory for a new buffer the function returns NULL.
 ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, uint32_t mappedDataSize)
 {
     k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
