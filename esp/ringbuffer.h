@@ -28,6 +28,7 @@ typedef struct {
 typedef void (*rb_scan_cb_t)(uint8_t *, uint32_t);
 typedef void* (*rb_inject_cb_t)(void* accumulated_value, void* data);
 typedef void (*rb_map_cb_t)(void * original, void * mapped);
+typedef bool (*rb_select_cb_t)(void * data);
 
 // Function prototypes
 ring_buffer_t * rb_init_ring_buffer(uint32_t size, uint32_t dataSize);
@@ -39,6 +40,7 @@ void rb_scan(ring_buffer_t *cb, rb_scan_cb_t callback);
 void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback);
 #define rb_reduce rb_inject
 ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, uint32_t mappedDataSize);
+ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback);
 bool rb_is_empty(ring_buffer_t *cb);
 bool rb_is_full(ring_buffer_t *cb);
 void rb_free_ring_buffer(ring_buffer_t *cb);
