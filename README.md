@@ -44,9 +44,13 @@ Description: This function produces single result from the data in the buffer pe
 
 The idea for ```rb_inject``` comes from the function with same name in Ruby language.
 
-### ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize);;
+### ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize);
 
 Description: This function mimics ruby's map method of enumerable objects. It performs map operation - producing new data from the original data. From mathematical point of view if creates new function from the original function (mapping). The callback function takes two arguments: pointer to the curent original value and pointer to a space where the new value must be stored.
+
+### ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback);
+
+Description: This function mimics ruby's select method of enumerable object. rb_select calls the callback function with each element. The callback does not change the element. Instead, it insoects it and return false (element not selected) or true (element selected). All selected elements are copied (not moved) to a new ring buffer with the same size. After scanning all elements rb_select returns a pointer to the new ring buffer. If no elements are selected, the new buffer  does not contain elements. If there is no memory for a new buffer the function returns NULL.
 
 ### bool rb_is_empty(ring_buffer_t *cb);
 
@@ -305,6 +309,53 @@ int main(void)
     }
 
     rb_free_ring_buffer(rb_point3d);
+
+    return 0;
+}
+```
+
+### Select even numbers from a ringbuffer.
+
+```
+bool rb_selected_callback(void * data)
+{
+    if ((*((int* )data) % 2) == 0) {
+        return true;
+    }
+    return false;
+}
+
+void rb_scan_int_callback(uint8_t* element, uint32_t index)
+{
+    int* ptr = (int*)element;
+    std::cout << index << ": value = " << *ptr << std::endl;
+}
+
+#definbe RBSIZE (10)
+int main(void)
+{
+    ring_buffer_t* rb_handle = NULL;
+
+    // create buffer with RBSIZE elements
+    if ((rb_handle = rb_init_ring_buffer(RBSIZE,sizeof(int))) == NULL) {
+        std::cout << "No memory to allocate ring buffer." << std::endl;
+        return 1;
+    }
+
+    // fill the buffer
+    for (int i = 0; i < RBSIZE; i++) {
+        if (rb_is_full(rb_handle)) {
+            int deq;
+            rb_dequeue(rb_handle,&deq);
+        }
+        rb_enqueue(rb_handle,&i);
+    }
+
+    // select even elements in new buffer, pointed to by rb_selected, then print it to std::cout
+    ring_buffer_t* rb_selected = rb_select(rb_handle,rb_selected_callback);
+    rb_scan_buffer(rb_selected,rb_scan_int_callback);
+
+    rb_free_ring_buffer((rb_handle));
 
     return 0;
 }
