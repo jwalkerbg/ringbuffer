@@ -252,6 +252,42 @@ ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, uint32_t mappedDa
 
 // Input:
 //  cb: pointer to a ringbuffer
+//  callback: pointer to a callback function that is called for each element in the buffer
+// Output:
+//  pointer to new ringbuffer, containing the new ring buffer containing selected elements
+// Description: This function mimics ruby's select method of enumerable object.
+// rb_select calls the callback function with each element. The callback does not change the element.
+// Instead, it insoects it and return false (element not selected) or true (element selected).
+// All selected elements are copied (not moved) to a new ring buffer with the same size. After scanning
+// all elements rb_select returns a pointer to the new ring buffer. If no elements are selected, the new buffer
+// does not contain elements. If there is no memory for a new buffer the function returns NULL.
+ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback)
+{
+    k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
+
+    // Create a new ring buffer with the given size and data size
+    ring_buffer_t* rb_selected = rb_init_ring_buffer(cb->size,cb->dataSize);
+    if (rb_selected  == NULL) {
+        k_sem_give(&cb->bmx);
+        return NULL;
+    }
+
+    // Apply the callback function to each element of the original ring buffer and enqueue the results into the new ring buffer
+    uint32_t currentIndex = cb->head / cb->dataSize;
+    for (uint32_t i = 0; i < cb->count; ++i) {
+        if (callback(cb->buffer + currentIndex * cb->dataSize)) {
+            rb_enqueue(rb_selected,cb->buffer + currentIndex * cb->dataSize);
+        }
+        // Move to the next index, wrapping around if necessary
+        currentIndex = (currentIndex + 1) % cb->size;
+    }
+
+    k_sem_give(&cb->bmx);
+    return rb_selected;
+}
+
+// Input:
+//  cb: pointer to a ringbuffer
 // Output:
 //  true: the buffer is empty; false: buffer is not empty
 // Description: This function checks if the ring buffer is empty.
