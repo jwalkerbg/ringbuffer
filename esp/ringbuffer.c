@@ -289,6 +289,79 @@ ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback)
 
 // Input:
 //  cb: pointer to a ringbuffer
+//  callback: pointer to a callback function that is called for each element in the buffer
+// Output:
+    true: callback return true for all elements in the ring buffer; otherwise false
+bool rb_all(ring_buffer_t* cb, rb_select_cb_t callback)
+{
+    xSemaphoreTake(cb->bmx,portMAX_DELAY); // Lock the mutex
+
+    // Apply the callback function to each element of the ring buffer
+    uint32_t currentIndex = cb->head / cb->dataSize;
+    for (uint32_t i = 0; i < cb->count; ++i) {
+        if (!callback(cb->buffer + currentIndex * cb->dataSize)) {
+            return false;
+        }
+        // Move to the next index, wrapping around if necessary
+        currentIndex = (currentIndex + 1) % cb->size;
+    }
+
+    xSemaphoreGive(cb->bmx);
+    return true;
+}
+
+// Input:
+//  cb: pointer to a ringbuffer
+//  callback: pointer to a callback function that is called for each element in the buffer
+// Output:
+    true: callback returns true for at least one element in the ring buffer; otherwise false
+bool rb_any(ring_buffer_t* cb, rb_select_cb_t callback)
+{
+    xSemaphoreTake(cb->bmx,portMAX_DELAY); // Lock the mutex
+
+    // Apply the callback function to each element of the ring buffer
+    uint32_t currentIndex = cb->head / cb->dataSize;
+    for (uint32_t i = 0; i < cb->count; ++i) {
+        if (callback(cb->buffer + currentIndex * cb->dataSize)) {
+            return true;
+        }
+        // Move to the next index, wrapping around if necessary
+        currentIndex = (currentIndex + 1) % cb->size;
+    }
+
+    xSemaphoreGive(cb->bmx);
+    return false;
+}
+
+// Input:
+//  cb: pointer to a ringbuffer
+//  callback: pointer to a callback function that is called for each element in the buffer
+// Output:
+    true: callback return true for exactly one element in the ring buffer; otherwise false
+bool rb_one(ring_buffer_t* cb, rb_select_cb_t callback)
+{
+    uint32_t count = 0;
+    xSemaphoreTake(cb->bmx,portMAX_DELAY); // Lock the mutex
+
+    // Apply the callback function to each element of the ring buffer
+    uint32_t currentIndex = cb->head / cb->dataSize;
+    for (uint32_t i = 0; i < cb->count; ++i) {
+        if (callback(cb->buffer + currentIndex * cb->dataSize)) {
+            count++;
+            if (count > 1u) {
+                break;
+            }
+        }
+        // Move to the next index, wrapping around if necessary
+        currentIndex = (currentIndex + 1) % cb->size;
+    }
+
+    xSemaphoreGive(cb->bmx);
+    return count == 1u ? true : false;
+}
+
+// Input:
+//  cb: pointer to a ringbuffer
 // Output:
 //  true: the buffer is empty; false: buffer is not empty
 // Description: This function checks if the ring buffer is empty.

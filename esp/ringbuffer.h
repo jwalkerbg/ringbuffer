@@ -41,6 +41,10 @@ void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback)
 #define rb_reduce rb_inject
 ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, uint32_t mappedDataSize);
 ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback);
+bool rb_all(ring_buffer_t* cb, rb_select_cb_t callback);
+bool rb_any(ring_buffer_t* cb, rb_select_cb_t callback);
+bool rb_one(ring_buffer_t* cb, rb_select_cb_t callback);
+
 bool rb_is_empty(ring_buffer_t *cb);
 bool rb_is_full(ring_buffer_t *cb);
 void rb_free_ring_buffer(ring_buffer_t *cb);
