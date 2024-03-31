@@ -15,6 +15,8 @@
 // Added rb_map function
 // v1.30, 29.03.2024
 // Added rb_selecct function
+// v1.40, 31.03.2024
+// Added rb_all, rb_any, rb_one functions
 
 // Input:
 //  size: maximal number of elements the ring can contain
