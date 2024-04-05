@@ -23,7 +23,7 @@ typedef struct {
     struct k_sem bmx;   // Mutex for mutual exclusion
 } ring_buffer_t;
 
-typedef void (*rb_scan_cb_t)(uint8_t *, uint32_t);
+typedef void (*rb_scan_cb_t)(void *, uint32_t);
 typedef void* (*rb_inject_cb_t)(void* accumulated_value, void* data);
 typedef void (*rb_map_cb_t)(void * original, void * mapped);
 typedef bool (*rb_select_cb_t)(void * data);
