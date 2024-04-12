@@ -38,11 +38,13 @@ Obviously, ```rb_scan``` can be used and for trivial tasks as to print elements 
 
 For tasks where a single calculated result is needed, without changing the elements (sum, product, average etc...) ```rb_scan``` can do them using external variables, however ```rb_inject``` is more suitable for such tasks.
 
+```rb_each``` is a synonym of ```rb_scan```.
+
 ### void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback);
 
-Description: This function produces single result from the data in the buffer performing operation(s) on them. Simple example is to calculate and return the sum of the elements (if they are summable). The function scans all elements beginning from the oldest one and finishing with the newest one. The callback function takes two arguments: the current accumulated value and the current data element. It performs operations on the current value and changes the acummulated value with the produced result. The function returns the final accumulated value, stored in the place of the initial value. The type of initial/final values may be different from the type of the values in the buffer.
+Description: This function produces single result from the data in the buffer performing operation(s) on them. Simple example is to calculate and return the sum of the elements (if they are summable). The function scans all elements beginning from the oldest one and finishing with the newest one. The callback function takes two arguments: the current accumulated value and the current data element. It performs operations on the current value and changes the acummulated value with the produced result. The function returns the final accumulated value, stored in the place of the initial value. The type of initial/final values can be different from the type of the values in the buffer.
 
-The idea for ```rb_inject``` comes from the function with same name in Ruby language.
+The idea for ```rb_inject``` comes from the function with same name in Ruby language. ```rb_reduce``` is a synonym of ```rb_inject```.
 
 ### ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize);
 
@@ -50,7 +52,19 @@ Description: This function mimics ruby's map method of enumerable objects. It pe
 
 ### ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback);
 
-Description: This function mimics ruby's select method of enumerable object. rb_select calls the callback function with each element. The callback does not change the element. Instead, it insoects it and return false (element not selected) or true (element selected). All selected elements are copied (not moved) to a new ring buffer with the same size. After scanning all elements rb_select returns a pointer to the new ring buffer. If no elements are selected, the new buffer  does not contain elements. If there is no memory for a new buffer the function returns NULL.
+Description: This function mimics ruby's select method of enumerable object. ```rb_select``` calls the callback function with each element. The callback does not change the element. Instead, it inspects it and returns ```false``` (element not selected) or ```true``` (element selected). All selected elements are copied (not moved) to a new ring buffer with the same size. After scanning all elements ```rb_select``` returns a pointer to the new ring buffer. If no elements are selected, the new buffer does not contain elements. If there is no memory for a new buffer the function returns NULL.
+
+### bool rb_all(ring_buffer_t* cb, rb_select_cb_t callback);
+
+Description: This function calls the callback function with each element. If the callback returns ```true``` for all elements, ```rb_all``` returns ```true``` else it returns ```false```.
+
+### bool rb_any(ring_buffer_t* cb, rb_select_cb_t callback);
+
+Description: This function calls the callback function with each element. If the callback returns ```true``` for at least for one element, ```rb_any``` returns ```true```. If the callback returns ```false``` for all elements, ```rb_any``` returns ```false```.
+
+### bool rb_one(ring_buffer_t* cb, rb_select_cb_t callback);
+
+Description: This function calls the callback function with each element. If the callback returns ```true``` for exactly one element, ```rb_one``` returns ```true```. Otherwise ```rb_one``` returns ```false```.
 
 ### bool rb_is_empty(ring_buffer_t *cb);
 
