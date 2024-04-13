@@ -294,53 +294,59 @@ ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback)
 //  cb: pointer to a ringbuffer
 //  callback: pointer to a callback function that is called for each element in the buffer
 // Output:
-    true: callback return true for all elements in the ring buffer; otherwise false
+//  true: callback return true for all elements in the ring buffer; otherwise false
 bool rb_all(ring_buffer_t* cb, rb_select_cb_t callback)
 {
+    bool ret = true;
+
     k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
 
     // Apply the callback function to each element of the ring buffer
     uint32_t currentIndex = cb->head / cb->dataSize;
     for (uint32_t i = 0; i < cb->count; ++i) {
         if (!callback(cb->buffer + currentIndex * cb->dataSize)) {
-            return false;
+            ret = false;
+            break;
         }
         // Move to the next index, wrapping around if necessary
         currentIndex = (currentIndex + 1) % cb->size;
     }
 
     k_sem_give(&cb->bmx);
-    return true;
+    return ret;
 }
 
 // Input:
 //  cb: pointer to a ringbuffer
 //  callback: pointer to a callback function that is called for each element in the buffer
 // Output:
-    true: callback returns true for at least one element in the ring buffer; otherwise false
+//  true: callback returns true for at least one element in the ring buffer; otherwise false
 bool rb_any(ring_buffer_t* cb, rb_select_cb_t callback)
 {
+    bool ret = false;
+
     k_sem_take(&cb->bmx,K_FOREVER); // Lock the mutex
 
     // Apply the callback function to each element of the ring buffer
     uint32_t currentIndex = cb->head / cb->dataSize;
     for (uint32_t i = 0; i < cb->count; ++i) {
         if (callback(cb->buffer + currentIndex * cb->dataSize)) {
-            return true;
+            ret = true;
+            break;
         }
         // Move to the next index, wrapping around if necessary
         currentIndex = (currentIndex + 1) % cb->size;
     }
 
     k_sem_give(&cb->bmx);
-    return false;
+    return ret;
 }
 
 // Input:
 //  cb: pointer to a ringbuffer
 //  callback: pointer to a callback function that is called for each element in the buffer
 // Output:
-    true: callback return true for exactly one element in the ring buffer; otherwise false
+//  true: callback return true for exactly one element in the ring buffer; otherwise false
 bool rb_one(ring_buffer_t* cb, rb_select_cb_t callback)
 {
     uint32_t count = 0;
