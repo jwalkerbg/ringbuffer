@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Ringbuffer is a container of data with FIFO organization. It is designed for data of single type, stored in an internal buffer as array. Ring buffer is thread-safe. Operations on data are protected by a semaphore. Eaxch instansce of ring bufer has its own sepmaphore. Before using ring buffer it is initialized - its control structure is allocated and linked to it an internal buffer is allocated for data array. At the end, there is a function that deallocates the memory used by the buffer. Data buffer cannot change its size, it is not provided, so the user must decice how much data will keep inside the buffer.
+Ringbuffer is a container of data with FIFO organization. It is designed for data of single type, stored in an internal buffer as array. Ring buffer is thread-safe. Operations on data are protected by a semaphore. Each instance of ring buffer has its own semaphore. Before using ring buffer it is initialized - its control structure is allocated and linked to it an internal buffer is allocated for data array. At the end, there is a function that de-allocates the memory used by the buffer. Data buffer cannot change its size, it is not provided, so the user must decide how much data will keep inside the buffer.
 
 The data is represented as a C struct, and the volume of the ring buffer is calculated as the number of elements of that struct contained in it.
 
@@ -18,7 +18,7 @@ Description: This function initializes a ring buffer, returning a pointer to it 
 
 ### bool rb_enqueue(ring_buffer_t *cb, void *data);
 
-Description: This function enuqueues (pushes) and element into the buffer and returns ```true``` if successful in this. Otherwise, if there is no room for new data (the buffer is full) it returns ```false```. The data is _copied_ from the space pointed to by ```data``` into the buffer internal buffer.
+Description: This function enqueues (pushes) and element into the buffer and returns ```true``` if successful in this. Otherwise, if there is no room for new data (the buffer is full) it returns ```false```. The data is _copied_ from the space pointed to by ```data``` into the buffer internal buffer.
 
 ### bool rb_dequeue(ring_buffer_t *cb, void *data);
 
@@ -42,13 +42,13 @@ For tasks where a single calculated result is needed, without changing the eleme
 
 ### void* rb_inject(ring_buffer_t* cb, void* initial_value, rb_inject_cb_t callback);
 
-Description: This function produces single result from the data in the buffer performing operation(s) on them. Simple example is to calculate and return the sum of the elements (if they are summable). The function scans all elements beginning from the oldest one and finishing with the newest one. The callback function takes two arguments: the current accumulated value and the current data element. It performs operations on the current value and changes the acummulated value with the produced result. The function returns the final accumulated value, stored in the place of the initial value. The type of initial/final values can be different from the type of the values in the buffer.
+Description: This function produces single result from the data in the buffer performing operation(s) on them. Simple example is to calculate and return the sum of the elements (if they are summable). The function scans all elements beginning from the oldest one and finishing with the newest one. The callback function takes two arguments: the current accumulated value and the current data element. It performs operations on the current value and changes the accumulated value with the produced result. The function returns the final accumulated value, stored in the place of the initial value. The type of initial/final values can be different from the type of the values in the buffer.
 
 The idea for ```rb_inject``` comes from the function with same name in Ruby language. ```rb_reduce``` is a synonym of ```rb_inject```.
 
 ### ring_buffer_t* rb_map(ring_buffer_t* cb, rb_map_cb_t callback, size_t mappedDataSize);
 
-Description: This function mimics ruby's map method of enumerable objects. It performs map operation - producing new data from the original data. From mathematical point of view if creates new function from the original function (mapping). The callback function takes two arguments: pointer to the curent original value and pointer to a space where the new value must be stored.
+Description: This function mimics ruby's map method of enumerable objects. It performs map operation - producing new data from the original data. From mathematical point of view if creates new function from the original function (mapping). The callback function takes two arguments: pointer to the current original value and pointer to a space where the new value must be stored.
 
 ### ring_buffer_t* rb_select(ring_buffer_t* cb, rb_select_cb_t callback);
 
@@ -166,7 +166,7 @@ int main(void)
 }
 ```
 
-### Calculate magninute of a vector in 3D space from its x, y, z coordinates
+### Calculate magnitude of a vector in 3D space from its x, y, z coordinates
 
 ```
 typedef struct {
@@ -345,7 +345,7 @@ void rb_scan_int_callback(uint8_t* element, uint32_t index)
     std::cout << index << ": value = " << *ptr << std::endl;
 }
 
-#definbe RBSIZE (10)
+#define RBSIZE (10)
 int main(void)
 {
     ring_buffer_t* rb_handle = NULL;
